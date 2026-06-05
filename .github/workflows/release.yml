@@ -90,10 +90,20 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           for target in darwin-arm64 darwin-x64 linux-x64 linux-arm64 win32-x64; do
-            npm publish "packages/karta/npm/$target" --access public
+            pkg="@doc-karta/core-$target"
+            if npm view "$pkg@$VERSION" version >/dev/null 2>&1; then
+              echo "$pkg@$VERSION already published — skipping"
+            else
+              npm publish "packages/karta/npm/$target" --access public
+            fi
           done
 
       - name: Publish karta
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish ./packages/karta --access public
+        run: |
+          if npm view "karta@$VERSION" version >/dev/null 2>&1; then
+            echo "karta@$VERSION already published — skipping"
+          else
+            npm publish ./packages/karta --access public
+          fi
