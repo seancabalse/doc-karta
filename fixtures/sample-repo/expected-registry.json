@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "nodes": [
+    {
+      "id": "chirp/dashboard/dashboard-page",
+      "type": "page",
+      "title": "Dashboard",
+      "status": "stable",
+      "project": "chirp",
+      "library": "dashboard",
+      "owner": "squad-wealth",
+      "audience": ["business", "tech"],
+      "source_path": "libs/touchpoints/dashboard/docs/dashboard-page.mdx"
+    },
+    {
+      "id": "chirp/market-bff/get-prices",
+      "type": "bff",
+      "title": "GET /prices",
+      "status": "stable",
+      "project": "chirp",
+      "library": "market-bff",
+      "owner": "squad-markets",
+      "audience": ["tech"],
+      "source_path": "libs/bffs/market-bff/docs/get-prices.mdx"
+    },
+    {
+      "id": "chirp/portfolio-bff/get-portfolio",
+      "type": "bff",
+      "title": "GET /portfolio",
+      "status": "stable",
+      "project": "chirp",
+      "library": "portfolio-bff",
+      "owner": "squad-wealth",
+      "audience": ["tech"],
+      "source_path": "libs/bffs/portfolio-bff/docs/get-portfolio.mdx"
+    },
+    {
+      "id": "chirp/portfolio-service/get-positions",
+      "type": "api",
+      "title": "PortfolioService.GetPositions",
+      "status": "stable",
+      "project": "chirp",
+      "library": "portfolio-service",
+      "owner": "squad-wealth",
+      "audience": ["tech"],
+      "source_path": "libs/services/portfolio-service/docs/get-positions.mdx"
+    }
+  ],
+  "edges": [
+    {
+      "from": "chirp/dashboard/dashboard-page",
+      "to": "chirp/market-bff/get-prices",
+      "kind": "calls"
+    },
+    {
+      "from": "chirp/dashboard/dashboard-page",
+      "to": "chirp/portfolio-bff/get-portfolio",
+      "kind": "calls"
+    },
+    {
+      "from": "chirp/portfolio-bff/get-portfolio",
+      "to": "chirp/portfolio-service/get-positions",
+      "kind": "calls"
+    }
+  ]
+}

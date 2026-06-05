@@ -1,0 +1,20 @@
+[workspace]
+resolver = "2"
+members = ["packages/karta-core"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+walkdir = "2"
+globset = "0.4"
+pulldown-cmark = "0.12"
+petgraph = "0.6"
+rayon = "1"
+notify = "6"
+clap = { version = "4", features = ["derive"] }

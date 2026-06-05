@@ -1,0 +1,17 @@
+---
+docviz_version: "1.0"
+id: dashboard-page
+type: page
+title: Dashboard
+status: stable
+audience: [business, tech]
+owner: squad-wealth
+calls:
+  - bff: get-portfolio
+  - bff: get-prices
+---
+
+# Dashboard
+
+The authenticated landing screen. Shows the user's portfolio summary and live
+market prices, fed by the portfolio and prices BFFs.

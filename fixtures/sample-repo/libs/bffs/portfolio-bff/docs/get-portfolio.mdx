@@ -1,0 +1,34 @@
+---
+docviz_version: "1.0"
+id: get-portfolio
+type: bff
+title: GET /portfolio
+status: stable
+audience: [tech]
+owner: squad-wealth
+method: GET
+path: /portfolio
+runtime: aws-lambda
+timeout_ms: 3000
+request:
+  example: ./examples/get-portfolio.request.json
+  estimated_kb: 0.5
+response:
+  schema: ./schemas/get-portfolio.response.json
+  estimated_kb: 12
+environments:
+  dev: https://dev.api.internal/portfolio
+  staging: https://stg.api.internal/portfolio
+  prod: https://api.internal/portfolio
+calls:
+  - api: get-positions
+errors:
+  - code: 503
+    condition: portfolio-service unavailable
+    fallback: cached response
+---
+
+# GET /portfolio
+
+Aggregates the user's holdings for the dashboard. Calls the portfolio service
+for raw positions and enriches them with current prices.

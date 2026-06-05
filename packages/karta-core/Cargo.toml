@@ -1,0 +1,22 @@
+[package]
+name = "karta-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Rust core for doc-karta: crawl, parse, validate, and resolve MDX docs into a registry"
+
+[[bin]]
+name = "karta-core"
+path = "src/main.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml.workspace = true
+walkdir.workspace = true
+globset.workspace = true
+pulldown-cmark.workspace = true
+petgraph.workspace = true
+rayon.workspace = true
+notify.workspace = true
+clap.workspace = true

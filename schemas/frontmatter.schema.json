@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://doc-karta.dev/schemas/frontmatter.schema.json",
+  "title": "doc-karta MDX frontmatter",
+  "description": "Typed frontmatter contract for doc-karta MDX docs. Mirrors packages/karta-core/src/schema.rs (the source of truth).",
+  "type": "object",
+  "required": ["docviz_version", "id", "type", "title"],
+  "properties": {
+    "docviz_version": {
+      "type": "string",
+      "description": "Schema version of this file. Current: 1.0.",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "id": {
+      "type": "string",
+      "description": "Library-local node id (e.g. get-portfolio). Namespaced to {project}/{library}/{id} at build time.",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["page", "component", "bff", "api"]
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["stable", "draft", "deprecated"],
+      "default": "draft"
+    },
+    "audience": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["business", "tech"] }
+    },
+    "owner": { "type": "string" },
+    "renders": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Component node-ids this page renders (page only)."
+    },
+    "calls": {
+      "type": "array",
+      "description": "Outbound references (page -> bff, bff -> api).",
+      "items": {
+        "type": "object",
+        "oneOf": [{ "required": ["bff"] }, { "required": ["api"] }],
+        "properties": {
+          "bff": { "type": "string" },
+          "api": { "type": "string" },
+          "env": { "type": "object", "additionalProperties": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+    "path": { "type": "string" },
+    "runtime": { "type": "string" },
+    "timeout_ms": { "type": "integer", "minimum": 1 },
+    "request": { "$ref": "#/$defs/ioSpec" },
+    "response": { "$ref": "#/$defs/ioSpec" },
+    "environments": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "condition"],
+        "properties": {
+          "code": { "type": "integer" },
+          "condition": { "type": "string" },
+          "fallback": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "bff" } } },
+      "then": { "required": ["method", "path", "runtime", "timeout_ms"] }
+    }
+  ],
+  "$defs": {
+    "ioSpec": {
+      "type": "object",
+      "properties": {
+        "schema": { "type": "string" },
+        "example": { "type": "string" },
+        "estimated_kb": { "type": "number" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

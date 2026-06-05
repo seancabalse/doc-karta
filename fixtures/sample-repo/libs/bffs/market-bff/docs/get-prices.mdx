@@ -1,0 +1,22 @@
+---
+docviz_version: "1.0"
+id: get-prices
+type: bff
+title: GET /prices
+status: stable
+audience: [tech]
+owner: squad-markets
+method: GET
+path: /prices
+runtime: aws-lambda
+timeout_ms: 2000
+response:
+  estimated_kb: 4
+environments:
+  dev: https://dev.api.internal/prices
+  prod: https://api.internal/prices
+---
+
+# GET /prices
+
+Returns latest market prices for the tickers shown on the dashboard.
