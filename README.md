@@ -9,7 +9,7 @@ a single `registry.json`, and a React canvas renders the
 **page → component → BFF → service-API** dependency graph. A broken reference is
 a *build error* — not a wiki page that quietly went stale.
 
-![status](https://img.shields.io/badge/status-alpha%20%C2%B7%20skeleton-orange)
+![status](https://img.shields.io/badge/status-alpha%20%C2%B7%20P2%20complete-orange)
 ![core](https://img.shields.io/badge/core-Rust-dea584)
 ![ui](https://img.shields.io/badge/ui-React%2019%20%2B%20TypeScript-3178c6)
 ![license](https://img.shields.io/badge/license-MIT-blue)
@@ -36,10 +36,13 @@ doc-karta treats documentation like source code:
   of docs is fast enough to run on every save.
 
 > [!NOTE]
-> **Status: alpha / skeleton.** The contracts are frozen and the Rust crawler is
-> implemented and verified against a fixture repo (it emits a correct
-> `registry.json` and fails the build on broken references). The graph UI is a
-> shell, and npm packaging isn't done yet. Track progress on the
+> **Status: alpha — Phases 1 & 2 complete.** The Rust crawler emits a correct,
+> deterministic `registry.json` and fails the build on broken references
+> (verified against the bundled fixture oracle and a real monorepo). The React
+> UI now reads that registry and renders the interactive dependency graph
+> (React Flow + dagre) with a sandboxed Manager/Preview split and shareable
+> URL state. Watch mode (P3) and npm packaging (P4) are still ahead. Track
+> progress on the
 > [Linear project](https://linear.app/heli0sa/project/documentation-viewer-doc-karta-a6f6a319479d)
 > — see the [roadmap](#roadmap) below.
 
@@ -168,6 +171,19 @@ You'll get the four nodes and three edges of the dashboard slice, sorted
 deterministically. Point `crawl` at any directory containing a `.docviz/config.ts`
 to crawl your own docs.
 
+Then launch the UI to explore the graph visually:
+
+```bash
+# Renders packages/karta/public/registry.json as an interactive graph.
+pnpm --filter karta dev
+```
+
+To view your own docs, write the crawler's output there and reload:
+
+```bash
+cargo run -p karta-core -- crawl <your-repo> > packages/karta/public/registry.json
+```
+
 ---
 
 ## Project layout
@@ -184,12 +200,17 @@ packages/
     tests/fixture.rs     acceptance test: output == expected-registry.json
   karta/               TypeScript package users install (CLI + dev server + UI)
     src/server/          Elysia dev server (serves UI, watches MDX) — stub
-    src/ui/              Vite + React 19 + TanStack Router/Query graph canvas — shell
+    src/ui/              Manager: React Flow + dagre graph, sidebar, toolbar, panels
+    src/preview/         Sandboxed Preview frame (preview.html) — selected-node content
+    src/channel/         Typed channel bus + postMessage transport (Manager ↔ Preview)
+    src/addons/          Addon API (registerPanel/…/useRegistry) + built-in addons
     src/styling/         StyleX design tokens
     src/types/           TS mirror of the registry/config contracts
+    public/registry.json Demo registry served to the UI (captured Chirp slice)
 fixtures/sample-repo   Synthetic crawl target + expected-registry.json oracle
 schemas/               JSON Schema for MDX frontmatter (editor integration)
-docs/specs/            Frozen contracts: id namespacing, registry format
+docs/specs/            Frozen contracts: id namespacing, registry format,
+                       plugin/channel API, URL state
 ```
 
 ---
@@ -201,14 +222,17 @@ doc-karta ships in phases. Each is a milestone on the
 
 | Phase  | Goal                                              | Status         |
 | ------ | ------------------------------------------------- | -------------- |
-| **P1** | Rust CLI → static `registry.json`                 | 🚧 In progress |
-| **P2** | React shell — read-only dependency graph          | ⏳ Planned      |
-| **P3** | Watch mode + live HMR over WebSocket              | ⏳ Planned      |
+| **P1** | Rust CLI → static `registry.json`                 | ✅ Complete     |
+| **P2** | React shell — read-only dependency graph          | ✅ Complete     |
+| **P3** | Watch mode + live HMR over WebSocket              | 🚧 Next         |
 | **P4** | npm packaging (cross-compiled binaries + WASM)    | ⏳ Planned      |
 | **P5** | WASM / fully static hosting                        | ⏳ Planned      |
 
-The crawler, contracts, and fixture acceptance test (the heart of P1) are done;
-the remaining P1 work is validating the core against a real monorepo.
+P1 and P2 are done: the crawler emits a verified `registry.json`, and the React
+UI reads it to render the interactive dependency graph (React Flow + dagre) with
+a sandboxed Manager/Preview split, an addon API, and shareable URL state. Next up
+is P3 — watch mode that re-crawls on save and hot-reloads the graph over a
+WebSocket.
 
 ---
 
@@ -243,8 +267,9 @@ build/test on every push.
 **Core** — Rust: `serde` · `serde_yaml` · `walkdir` · `globset` ·
 `pulldown-cmark` · `petgraph` · `rayon` · `clap`.
 
-**Package & UI** — TypeScript · React 19 · TanStack Router/Query · StyleX ·
-Elysia · Vite. Tooling: pnpm workspaces · Turborepo · Biome · Vitest · Playwright.
+**Package & UI** — TypeScript · React 19 · TanStack Router/Query ·
+React Flow (`@xyflow/react`) · dagre · StyleX · Elysia · Vite. Tooling:
+pnpm workspaces · Turborepo · Biome · Vitest · Playwright.
 
 ---
 

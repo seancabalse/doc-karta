@@ -1,0 +1,189 @@
+{
+  "version": "1.0",
+  "nodes": [
+    {
+      "id": "chirp/api/auth-login",
+      "type": "api",
+      "title": "AuthService.Login",
+      "status": "stable",
+      "project": "chirp",
+      "library": "api",
+      "owner": "squad-platform",
+      "audience": ["tech"],
+      "source_path": "apps/api/docs/auth-login.mdx"
+    },
+    {
+      "id": "chirp/api/feed-get-home-feed",
+      "type": "api",
+      "title": "FeedService.GetHomeFeed",
+      "status": "stable",
+      "project": "chirp",
+      "library": "api",
+      "owner": "squad-platform",
+      "audience": ["tech"],
+      "source_path": "apps/api/docs/feed-get-home-feed.mdx"
+    },
+    {
+      "id": "chirp/api/likes-toggle-post-like",
+      "type": "api",
+      "title": "LikesService.TogglePostLike",
+      "status": "stable",
+      "project": "chirp",
+      "library": "api",
+      "owner": "squad-platform",
+      "audience": ["tech"],
+      "source_path": "apps/api/docs/likes-toggle-post-like.mdx"
+    },
+    {
+      "id": "chirp/api/posts-create-post",
+      "type": "api",
+      "title": "PostsService.CreatePost",
+      "status": "stable",
+      "project": "chirp",
+      "library": "api",
+      "owner": "squad-platform",
+      "audience": ["tech"],
+      "source_path": "apps/api/docs/posts-create-post.mdx"
+    },
+    {
+      "id": "chirp/client-user/create-post",
+      "type": "bff",
+      "title": "createPost (server fn)",
+      "status": "stable",
+      "project": "chirp",
+      "library": "client-user",
+      "owner": "squad-client",
+      "audience": ["tech"],
+      "source_path": "apps/client-user/docs/create-post.mdx"
+    },
+    {
+      "id": "chirp/client-user/get-home-feed",
+      "type": "bff",
+      "title": "getHomeFeed (server fn)",
+      "status": "stable",
+      "project": "chirp",
+      "library": "client-user",
+      "owner": "squad-client",
+      "audience": ["tech"],
+      "source_path": "apps/client-user/docs/get-home-feed.mdx"
+    },
+    {
+      "id": "chirp/client-user/home-page",
+      "type": "page",
+      "title": "Home Feed",
+      "status": "stable",
+      "project": "chirp",
+      "library": "client-user",
+      "owner": "squad-client",
+      "audience": ["business", "tech"],
+      "source_path": "apps/client-user/docs/home-page.mdx"
+    },
+    {
+      "id": "chirp/client-user/login-page",
+      "type": "page",
+      "title": "Login",
+      "status": "stable",
+      "project": "chirp",
+      "library": "client-user",
+      "owner": "squad-client",
+      "audience": ["business", "tech"],
+      "source_path": "apps/client-user/docs/login-page.mdx"
+    },
+    {
+      "id": "chirp/client-user/login-user",
+      "type": "bff",
+      "title": "loginUser (server fn)",
+      "status": "stable",
+      "project": "chirp",
+      "library": "client-user",
+      "owner": "squad-client",
+      "audience": ["tech"],
+      "source_path": "apps/client-user/docs/login-user.mdx"
+    },
+    {
+      "id": "chirp/client-user/post-form",
+      "type": "component",
+      "title": "PostForm",
+      "status": "stable",
+      "project": "chirp",
+      "library": "client-user",
+      "owner": "squad-client",
+      "audience": ["tech"],
+      "source_path": "apps/client-user/docs/post-form.mdx"
+    },
+    {
+      "id": "chirp/client-user/post-list",
+      "type": "component",
+      "title": "PostList",
+      "status": "stable",
+      "project": "chirp",
+      "library": "client-user",
+      "owner": "squad-client",
+      "audience": ["tech"],
+      "source_path": "apps/client-user/docs/post-list.mdx"
+    },
+    {
+      "id": "chirp/client-user/toggle-post-like",
+      "type": "bff",
+      "title": "togglePostLike (server fn)",
+      "status": "stable",
+      "project": "chirp",
+      "library": "client-user",
+      "owner": "squad-client",
+      "audience": ["tech"],
+      "source_path": "apps/client-user/docs/toggle-post-like.mdx"
+    }
+  ],
+  "edges": [
+    {
+      "from": "chirp/client-user/create-post",
+      "to": "chirp/api/posts-create-post",
+      "kind": "calls"
+    },
+    {
+      "from": "chirp/client-user/get-home-feed",
+      "to": "chirp/api/feed-get-home-feed",
+      "kind": "calls"
+    },
+    {
+      "from": "chirp/client-user/home-page",
+      "to": "chirp/client-user/get-home-feed",
+      "kind": "calls"
+    },
+    {
+      "from": "chirp/client-user/home-page",
+      "to": "chirp/client-user/post-form",
+      "kind": "renders"
+    },
+    {
+      "from": "chirp/client-user/home-page",
+      "to": "chirp/client-user/post-list",
+      "kind": "renders"
+    },
+    {
+      "from": "chirp/client-user/login-page",
+      "to": "chirp/client-user/login-user",
+      "kind": "calls"
+    },
+    {
+      "from": "chirp/client-user/login-user",
+      "to": "chirp/api/auth-login",
+      "kind": "calls"
+    },
+    {
+      "from": "chirp/client-user/post-form",
+      "to": "chirp/client-user/create-post",
+      "kind": "calls"
+    },
+    {
+      "from": "chirp/client-user/post-list",
+      "to": "chirp/client-user/toggle-post-like",
+      "kind": "calls"
+    },
+    {
+      "from": "chirp/client-user/toggle-post-like",
+      "to": "chirp/api/likes-toggle-post-like",
+      "kind": "calls"
+    }
+  ]
+}
