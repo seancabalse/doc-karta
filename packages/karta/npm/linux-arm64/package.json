@@ -1,0 +1,15 @@
+{
+  "name": "@doc-karta/core-linux-arm64",
+  "version": "0.0.0",
+  "description": "Prebuilt karta-core binary for Linux (arm64).",
+  "license": "MIT",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "files": [
+    "karta-core"
+  ]
+}

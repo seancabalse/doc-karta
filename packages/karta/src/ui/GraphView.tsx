@@ -1,11 +1,12 @@
 import * as stylex from '@stylexjs/stylex'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { channel, emitToChannel, getPanels, subscribeToChannel, useRegistry } from '../addons/api'
 import { connectPostMessage } from '../channel/channel'
 import { tokens } from '../styling/tokens.stylex'
 import type { Audience, NodeType } from '../types/registry'
 import { GraphCanvas } from './graph/GraphCanvas'
+import { subscribeLiveStatus } from './live'
 import { Sidebar } from './Sidebar'
 import { Toolbar } from './Toolbar'
 
@@ -65,6 +66,21 @@ const styles = stylex.create({
     fontSize: 13,
     color: tokens.muted,
   },
+  banner: {
+    flexShrink: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 20,
+    paddingRight: 20,
+    backgroundColor: 'rgba(248,81,73,0.12)',
+    borderBottomWidth: 1,
+    borderBottomStyle: 'solid',
+    borderBottomColor: '#f85149',
+    color: '#ff9d96',
+    fontSize: 12,
+    fontFamily: tokens.fontMono,
+    whiteSpace: 'pre-wrap',
+  },
 })
 
 export function GraphView() {
@@ -72,6 +88,10 @@ export function GraphView() {
   const navigate = useNavigate({ from: '/' })
   const { registry, isLoading, error } = useRegistry()
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [liveError, setLiveError] = useState<string | null>(null)
+
+  // Dev live-reload: a failed re-crawl surfaces here while the last good graph stays.
+  useEffect(() => subscribeLiveStatus(setLiveError), [])
 
   const select = useCallback(
     (node: string) => navigate({ search: (s) => ({ ...s, node }) }),
@@ -156,6 +176,12 @@ export function GraphView() {
   return (
     <div {...stylex.props(styles.view)}>
       <Toolbar layer={layer} audience={audience} onLayer={setLayer} onAudience={setAudience} />
+      {liveError && (
+        <div role="alert" {...stylex.props(styles.banner)}>
+          crawl failed — showing last good graph:{'\n'}
+          {liveError}
+        </div>
+      )}
       <div {...stylex.props(styles.body)}>
         {content}
         <aside {...stylex.props(styles.aside)}>

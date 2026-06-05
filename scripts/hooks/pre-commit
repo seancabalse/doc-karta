@@ -1,0 +1,19 @@
+#!/bin/sh
+# Optional doc-karta pre-commit hook: block a commit when a doc contains a
+# likely secret. Same engine as the `karta build` gate.
+#
+# Install (from the repo root):
+#   ln -s ../../scripts/hooks/pre-commit .git/hooks/pre-commit
+#   # or: cp scripts/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+#
+# Bypass a single commit with `git commit --no-verify`.
+
+set -e
+
+if command -v karta >/dev/null 2>&1; then
+  karta scan .
+elif [ -f packages/karta/bin/karta.js ]; then
+  node packages/karta/bin/karta.js scan .
+else
+  cargo run -q -p karta-core -- scan .
+fi

@@ -1,0 +1,25 @@
+---
+docviz_version: "1.0"
+id: leaky
+type: bff
+title: Leaky BFF
+status: draft
+audience: [tech]
+method: GET
+path: /leaky
+runtime: nodejs20
+timeout_ms: 300
+environments:
+  staging: https://svc:s3cr3t@staging.internal/api
+---
+
+# Leaky BFF
+
+Rotate this credential — it should never have been committed:
+
+    AKIAIOSFODNN7EXAMPLE
+
+This base64 example payload is intentional, not a secret:
+
+<!-- karta-allow-secret -->
+    QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVowMTIzNDU2Nzg5YWJjZGVmZ2hpamtsbW4=
