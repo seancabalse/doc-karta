@@ -1,7 +1,7 @@
 {
   "name": "karta",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "private": false,
   "type": "module",
   "description": "doc-karta CLI + dev server + graph UI",
   "bin": {
