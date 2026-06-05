@@ -96,4 +96,4 @@ jobs:
       - name: Publish karta
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish packages/karta --access public
+        run: npm publish ./packages/karta --access public
