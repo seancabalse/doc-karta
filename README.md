@@ -1,52 +1,227 @@
+<div align="center">
+
 # doc-karta
 
-Living, graph-based documentation viewer for monorepos. MDX files with typed
-frontmatter are the single source of truth; a fast Rust core crawls them into a
-`registry.json`, and a React canvas renders the page → component → BFF →
-service-API dependency graph. A broken reference is a build error, not a stale
-wiki page.
+**A living, graph-based documentation viewer for monorepos.**
 
-> Status: skeleton. The contracts, fixture, and project structure are in place;
-> the crawler and graph UI are not implemented yet. See the
+Your docs are MDX files with typed frontmatter. A fast Rust core crawls them into
+a single `registry.json`, and a React canvas renders the
+**page → component → BFF → service-API** dependency graph. A broken reference is
+a *build error* — not a wiki page that quietly went stale.
+
+![status](https://img.shields.io/badge/status-alpha%20%C2%B7%20skeleton-orange)
+![core](https://img.shields.io/badge/core-Rust-dea584)
+![ui](https://img.shields.io/badge/ui-React%2019%20%2B%20TypeScript-3178c6)
+![license](https://img.shields.io/badge/license-MIT-blue)
+
+</div>
+
+---
+
+## Why doc-karta?
+
+In a monorepo, the truth about how things connect — which page calls which BFF,
+which BFF fans out to which service — lives in code that changes daily. Hand-kept
+docs drift away from that truth within weeks, and nobody trusts them.
+
+doc-karta treats documentation like source code:
+
+- 📝 **Docs live next to the code** they describe (`libs/**/docs/*.mdx`) and move
+  with it.
+- 🔗 **References are typed and checked.** A page that `calls` a BFF that no
+  longer exists fails the crawl — the same way a dangling import fails a compiler.
+- 🕸️ **The shape is a graph, not a tree.** doc-karta renders the real dependency
+  web so you can *see* the blast radius of a change.
+- ⚡ **The core is Rust.** Crawling, parsing, validating, and resolving thousands
+  of docs is fast enough to run on every save.
+
+> [!NOTE]
+> **Status: alpha / skeleton.** The contracts are frozen and the Rust crawler is
+> implemented and verified against a fixture repo (it emits a correct
+> `registry.json` and fails the build on broken references). The graph UI is a
+> shell, and npm packaging isn't done yet. Track progress on the
 > [Linear project](https://linear.app/heli0sa/project/documentation-viewer-doc-karta-a6f6a319479d)
-> (milestones P1–P5).
+> — see the [roadmap](#roadmap) below.
 
-## Layout
+---
+
+## How it works
+
+doc-karta is a five-stage pipeline. Each MDX file is discovered, parsed,
+validated, and resolved into a graph, which is emitted as one JSON artifact the
+UI reads.
 
 ```
-packages/
-  karta-core/        Rust core — crawl, parse, validate, resolve → registry.json
-  karta/             TypeScript package users install (CLI + dev server + UI)
-    bin/karta.js     `npx karta` entry point
-    src/server/      Elysia dev server (serves UI, watches MDX) — stub
-    src/ui/          Vite + React 19 + TanStack Router + TanStack Query graph UI
-    src/styling/     StyleX design tokens
-    src/types/       TS mirror of the registry/config contracts
-fixtures/sample-repo Synthetic crawl target + expected-registry.json oracle
-schemas/             JSON Schema for MDX frontmatter (editor integration)
-docs/specs/          Frozen contracts: id namespacing, registry format
+.docviz/config.ts          *.mdx files               registry.json
+       │                        │                          │
+       ▼                        ▼                          ▼
+  ┌─────────┐   ┌────────┐  ┌────────┐  ┌───────────┐  ┌─────────┐
+  │ config  │──▶│ crawl  │─▶│ parse  │─▶│ validate  │─▶│ resolve │──▶ registry.json
+  │ (gl&os) │   │walkdir │  │ +YAML  │  │ per-type  │  │ + graph │
+  └─────────┘   └────────┘  └────────┘  └───────────┘  └─────────┘
+                                              │
+                                     broken ref / bad type
+                                              ▼
+                                        non-zero exit
 ```
 
-The single interface between the Rust core and the UI is `registry.json` — see
-[`docs/specs/registry-format.md`](docs/specs/registry-format.md). The
-non-retrofittable id convention is in
-[`docs/specs/id-namespacing.md`](docs/specs/id-namespacing.md).
+The crawled fixture models a real slice of a product — a dashboard page backed by
+two BFFs, one of which calls a downstream service:
 
-## Prerequisites
+```
+dashboard-page (page)
+  ├── calls ──▶ get-portfolio (bff) ── calls ──▶ get-positions (api)
+  └── calls ──▶ get-prices    (bff)
+```
 
-- Node 22+ and pnpm 11+
-- Rust toolchain (`rustup`) for `karta-core`
+---
 
-## Develop
+## Anatomy of a doc
+
+A doc is plain MDX. The YAML frontmatter is **typed** — the Rust core knows what
+a `page`, `component`, `bff`, and `api` are allowed to contain, and rejects
+anything that doesn't fit. Here is a real page from the fixture:
+
+```mdx
+---
+docviz_version: "1.0"
+id: dashboard-page
+type: page
+title: Dashboard
+status: stable
+audience: [business, tech]
+owner: squad-wealth
+calls:
+  - bff: get-portfolio
+  - bff: get-prices
+---
+
+# Dashboard
+
+The authenticated landing screen. Shows the user's portfolio summary and live
+market prices, fed by the portfolio and prices BFFs.
+```
+
+Each `calls` entry references another node by its bare `id`. The crawler resolves
+those into fully-qualified ids and turns them into graph edges — and if a
+referenced id doesn't exist, the crawl fails:
+
+```
+$ karta-core crawl ./repo
+crawl failed:
+libs/touchpoints/dashboard/docs/dashboard-page.mdx: reference to unknown node `get-prices`
+```
+
+### The id convention
+
+Every node has a globally-unique, **non-retrofittable** id:
+
+```
+{project}/{library}/{node-id}     e.g.  chirp/portfolio-bff/get-portfolio
+```
+
+`project` comes from `.docviz/config.ts`; `library` is the directory that
+contains the `docs/` folder; `node-id` is the frontmatter `id`. This convention
+is frozen — see [`docs/specs/id-namespacing.md`](docs/specs/id-namespacing.md).
+
+---
+
+## The registry
+
+`registry.json` is the **single interface** between the Rust core and the UI —
+a stable, versioned `{ version, nodes, edges }` document with deterministic
+ordering (nodes by `id`, edges by `(from, to)`). The page above resolves to:
+
+```json
+{
+  "id": "chirp/dashboard/dashboard-page",
+  "type": "page",
+  "title": "Dashboard",
+  "status": "stable",
+  "project": "chirp",
+  "library": "dashboard",
+  "owner": "squad-wealth",
+  "audience": ["business", "tech"],
+  "source_path": "libs/touchpoints/dashboard/docs/dashboard-page.mdx"
+}
+```
+
+The full contract — node fields, edge kinds, and stability guarantees — is in
+[`docs/specs/registry-format.md`](docs/specs/registry-format.md).
+
+---
+
+## Quick start
+
+> Requires **Rust** (`rustup`), **Node 22+**, and **pnpm 11+**.
+
+Clone, install, and crawl the bundled fixture to see a real `registry.json`:
 
 ```bash
 pnpm install
 
-# JS workspace (lint / typecheck / test / build via Turborepo)
+# Crawl the synthetic fixture repo and print its registry to stdout.
+cargo run -p karta-core -- crawl fixtures/sample-repo
+```
+
+You'll get the four nodes and three edges of the dashboard slice, sorted
+deterministically. Point `crawl` at any directory containing a `.docviz/config.ts`
+to crawl your own docs.
+
+---
+
+## Project layout
+
+```
+packages/
+  karta-core/          Rust core — crawl · parse · validate · resolve → registry.json
+    src/config.rs        read project + include globs from .docviz/config.ts
+    src/crawler.rs       discover *.mdx via walkdir + globset
+    src/parser.rs        split YAML frontmatter, deserialize to typed structs
+    src/validator.rs     per-type required fields; broken refs are errors
+    src/graph.rs         qualified ids + edge resolution, deterministic output
+    src/schema.rs        the canonical contracts (serde structs)
+    tests/fixture.rs     acceptance test: output == expected-registry.json
+  karta/               TypeScript package users install (CLI + dev server + UI)
+    src/server/          Elysia dev server (serves UI, watches MDX) — stub
+    src/ui/              Vite + React 19 + TanStack Router/Query graph canvas — shell
+    src/styling/         StyleX design tokens
+    src/types/           TS mirror of the registry/config contracts
+fixtures/sample-repo   Synthetic crawl target + expected-registry.json oracle
+schemas/               JSON Schema for MDX frontmatter (editor integration)
+docs/specs/            Frozen contracts: id namespacing, registry format
+```
+
+---
+
+## Roadmap
+
+doc-karta ships in phases. Each is a milestone on the
+[Linear project](https://linear.app/heli0sa/project/documentation-viewer-doc-karta-a6f6a319479d).
+
+| Phase  | Goal                                              | Status         |
+| ------ | ------------------------------------------------- | -------------- |
+| **P1** | Rust CLI → static `registry.json`                 | 🚧 In progress |
+| **P2** | React shell — read-only dependency graph          | ⏳ Planned      |
+| **P3** | Watch mode + live HMR over WebSocket              | ⏳ Planned      |
+| **P4** | npm packaging (cross-compiled binaries + WASM)    | ⏳ Planned      |
+| **P5** | WASM / fully static hosting                        | ⏳ Planned      |
+
+The crawler, contracts, and fixture acceptance test (the heart of P1) are done;
+the remaining P1 work is validating the core against a real monorepo.
+
+---
+
+## Development
+
+```bash
+pnpm install
+
+# JS workspace — lint / typecheck / test / build via Turborepo
 pnpm lint
 pnpm turbo typecheck test build
 
-# UI shell dev server
+# UI shell dev server (Vite + React + StyleX)
 pnpm --filter karta dev
 
 # Elysia dev server stub (health check on :4317)
@@ -54,12 +229,25 @@ pnpm --filter karta serve
 
 # Rust core
 cargo build -p karta-core
-cargo test -p karta-core
-cargo run -p karta-core -- crawl fixtures/sample-repo   # prints registry.json
+cargo test  -p karta-core                              # runs the fixture acceptance test
+cargo run   -p karta-core -- crawl fixtures/sample-repo
 ```
 
-## Stack
+CI (`.github/workflows/ci.yml`) runs the same JS pipeline and the Rust
+build/test on every push.
 
-pnpm workspaces · Turborepo · Biome · Vitest · Playwright · TypeScript ·
-React 19 · TanStack Router/Query · StyleX · Elysia · Rust (serde, walkdir,
-globset, pulldown-cmark, petgraph, rayon).
+---
+
+## Tech stack
+
+**Core** — Rust: `serde` · `serde_yaml` · `walkdir` · `globset` ·
+`pulldown-cmark` · `petgraph` · `rayon` · `clap`.
+
+**Package & UI** — TypeScript · React 19 · TanStack Router/Query · StyleX ·
+Elysia · Vite. Tooling: pnpm workspaces · Turborepo · Biome · Vitest · Playwright.
+
+---
+
+## License
+
+MIT
