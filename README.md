@@ -203,11 +203,11 @@ Install the package and scaffold a starting point. After install you'll see a
 one-line hint; run `init` once, then `dev` or `build`:
 
 ```bash
-npm install karta
-npx karta init           # scaffold .docviz/config.ts (+ example if you have no docs yet)
-npx karta dev [dir]      # serve the UI + watch [dir]; the graph hot-reloads on save
-npx karta build [dir]    # crawl [dir] into a static site (default out: karta-dist/)
-npx karta scan [dir]     # fail if any doc contains a likely secret (also gates build)
+npm install -g @doc-karta/karta
+karta init           # scaffold .docviz/config.ts (+ example if you have no docs yet)
+karta dev [dir]      # serve the UI + watch [dir]; the graph hot-reloads on save
+karta build [dir]    # crawl [dir] into a static site (default out: karta-dist/)
+karta scan [dir]     # fail if any doc contains a likely secret (also gates build)
 ```
 
 - **`init`** is idempotent (never overwrites) and **zero-config**: it scans for
@@ -237,7 +237,7 @@ from `.env` — so every `karta build` first scans the raw `.mdx` sources and
 - base64 blobs over 50 chars
 
 Findings are redacted in the output (`AKIA…MPLE`) so a CI log never reprints the
-secret. Run it on its own with `npx karta scan [dir]`.
+secret. Run it on its own with `karta scan [dir]`.
 
 For an **intentional** example (a sample token, a base64 payload), add
 `<!-- karta-allow-secret -->` on the line — or the line directly above — to

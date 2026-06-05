@@ -102,8 +102,8 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if npm view "karta@$VERSION" version >/dev/null 2>&1; then
-            echo "karta@$VERSION already published — skipping"
+          if npm view "@doc-karta/karta@$VERSION" version >/dev/null 2>&1; then
+            echo "@doc-karta/karta@$VERSION already published — skipping"
           else
             npm publish ./packages/karta --access public
           fi
