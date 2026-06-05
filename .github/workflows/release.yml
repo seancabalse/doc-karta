@@ -79,11 +79,11 @@ jobs:
             chmod +x "$dest"/karta-core* || true
           done
 
-      - name: Stamp versions + wire optionalDependencies
-        run: node scripts/prepare-publish.mjs "$VERSION"
-
       - name: Build UI
         run: pnpm --filter karta build
+
+      - name: Stamp versions + wire optionalDependencies
+        run: node scripts/prepare-publish.mjs "$VERSION"
 
       - name: Publish platform packages
         env:
