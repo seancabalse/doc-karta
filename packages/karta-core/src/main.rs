@@ -1,18 +1,12 @@
 //! karta-core CLI — crawls a repo's MDX docs into a `registry.json`.
 //!
-//! Skeleton: the pipeline is wired end to end (crawl -> parse -> validate ->
-//! resolve -> emit) but the stages are stubs. `crawl` currently emits an empty
-//! registry. The Phase-1 issue fills in the stages against the fixture repo.
-
-mod crawler;
-mod emitter;
-mod graph;
-mod parser;
-mod schema;
-mod validator;
+//! Thin wrapper over [`karta_core::crawl`]: the whole pipeline lives in the
+//! library so the CLI and the tests share one code path.
 
 use clap::{Parser, Subcommand};
+use karta_core::emitter;
 use std::path::PathBuf;
+use std::process::exit;
 
 #[derive(Parser)]
 #[command(name = "karta-core", version, about = "doc-karta Rust core")]
@@ -33,30 +27,18 @@ enum Command {
 fn main() {
     let cli = Cli::parse();
     match cli.command {
-        Command::Crawl { root } => {
-            let files = crawler::find_mdx_files(&root);
-            let docs: Vec<parser::ParsedDoc> = files
-                .iter()
-                .filter_map(|path| match parser::parse_file(path) {
-                    Ok(doc) => match validator::validate(&doc.frontmatter) {
-                        Ok(()) => Some(doc),
-                        Err(errs) => {
-                            eprintln!("validation failed for {}: {errs:?}", path.display());
-                            None
-                        }
-                    },
-                    Err(err) => {
-                        eprintln!("parse failed for {}: {err}", path.display());
-                        None
-                    }
-                })
-                .collect();
-
-            let registry = graph::build_registry(&docs);
-            match emitter::to_json(&registry) {
+        Command::Crawl { root } => match karta_core::crawl(&root) {
+            Ok(registry) => match emitter::to_json(&registry) {
                 Ok(json) => println!("{json}"),
-                Err(err) => eprintln!("emit failed: {err}"),
+                Err(err) => {
+                    eprintln!("emit failed: {err}");
+                    exit(1);
+                }
+            },
+            Err(err) => {
+                eprintln!("crawl failed:\n{err}");
+                exit(1);
             }
-        }
+        },
     }
 }
