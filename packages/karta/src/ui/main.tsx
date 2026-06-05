@@ -5,6 +5,10 @@ import { createRoot } from 'react-dom/client'
 import { router } from './router'
 import './styles.css'
 
+// Built-in addons self-register at import time (before first render).
+import '../addons/detail-panel'
+import '../addons/stats-toolbar'
+
 const queryClient = new QueryClient()
 
 const rootEl = document.getElementById('root')

@@ -17,4 +17,14 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      // Manager (index.html) + sandboxed Preview frame (preview.html).
+      // Paths are relative to the Vite project root.
+      input: {
+        main: 'index.html',
+        preview: 'preview.html',
+      },
+    },
+  },
 })
