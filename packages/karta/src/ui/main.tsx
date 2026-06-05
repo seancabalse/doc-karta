@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { connectLiveRegistry } from './live'
 import { router } from './router'
 import './styles.css'
 
@@ -10,6 +11,7 @@ import '../addons/detail-panel'
 import '../addons/stats-toolbar'
 
 const queryClient = new QueryClient()
+connectLiveRegistry(queryClient)
 
 const rootEl = document.getElementById('root')
 if (!rootEl) throw new Error('#root not found')

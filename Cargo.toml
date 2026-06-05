@@ -18,3 +18,4 @@ petgraph = "0.6"
 rayon = "1"
 notify = "6"
 clap = { version = "4", features = ["derive"] }
+regex = "1"

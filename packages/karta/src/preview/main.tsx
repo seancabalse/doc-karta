@@ -3,10 +3,12 @@ import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { channel } from '../addons/api'
 import { connectPostMessage } from '../channel/channel'
+import { connectLiveRegistry } from '../ui/live'
 import '../ui/styles.css'
 import { Preview } from './Preview'
 
 const queryClient = new QueryClient()
+connectLiveRegistry(queryClient)
 
 function PreviewRoot() {
   // Bridge this frame's channel to the Manager (our parent).
