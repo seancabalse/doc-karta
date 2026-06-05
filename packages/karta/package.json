@@ -1,9 +1,15 @@
 {
   "name": "@doc-karta/karta",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "type": "module",
   "description": "doc-karta CLI + dev server + graph UI",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seancabalse/doc-karta.git",
+    "directory": "packages/karta"
+  },
   "bin": {
     "karta": "./bin/karta.js"
   },
